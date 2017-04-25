@@ -129,7 +129,7 @@ void WPAPass::runPointerAnalysis(llvm::Module& module, u32_t kind)
     if (anderSVFG) {
         SVFGBuilder memSSA(true);
         SVFG *svfg = memSSA.buildSVFG((BVDataPTAImpl*)_pta);
-        svfg->dump("ander_svfg");
+        svfg->dump("ander_svfg", true /* simple */);
     }
 }
 
