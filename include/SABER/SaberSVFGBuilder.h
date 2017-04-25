@@ -55,7 +55,7 @@ public:
     }
 protected:
     /// Re-write create SVFG method
-    virtual void createSVFG(MemSSA* mssa, SVFG* graph);
+    virtual void createSVFG(std::unique_ptr<MemSSA> mssa, SVFG* graph);
 
 private:
     /// Remove direct value-flow edge to a dereference point for Saber source-sink memory error detection

@@ -34,11 +34,11 @@
 using namespace llvm;
 using namespace analysisUtil;
 
-void SaberSVFGBuilder::createSVFG(MemSSA* mssa, SVFG* graph) {
+void SaberSVFGBuilder::createSVFG(std::unique_ptr<MemSSA> mssa, SVFG* graph) {
 
     svfg = graph;
-    svfg->buildSVFG(mssa);
-    BVDataPTAImpl* pta = mssa->getPTA();
+    svfg->buildSVFG(std::move(mssa));
+    BVDataPTAImpl* pta = svfg->getMSSA()->getPTA();
     DBOUT(DGENERAL, outs() << pasMsg("\tCollect Global Variables\n"));
 
     collectGlobals(pta);
