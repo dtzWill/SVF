@@ -1,11 +1,12 @@
 /**
   @file 
 
-  @ingroup mtr
+  @ingroup epd
 
-  @brief Internal data structures of the mtr package
+  @brief Internal header for the University of Colorado extended
+  double precision package.
 
-  @author Fabio Somenzi
+  @author In-Ho Moon
 
   @copyright@parblock
   Copyright (c) 1995-2015, Regents of the University of Colorado
@@ -43,102 +44,103 @@
 
 */
 
-#ifndef MTRINT_H_
-#define MTRINT_H_
-
-/*---------------------------------------------------------------------------*/
-/* Nested includes                                                           */
-/*---------------------------------------------------------------------------*/
+#ifndef EPD_INT_H_
+#define EPD_INT_H_
 
 #include "config.h"
-#include "mtr.h"
+#include "epd.h"
+
+#if WORDS_BIGENDIAN == 1
+#define EPD_BIG_ENDIAN
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef SIZEOF_VOID_P
-#define SIZEOF_VOID_P 4
-#endif
-#ifndef SIZEOF_INT
-#define SIZEOF_INT 4
-#endif
-
-#if defined(__GNUC__)
-#define MTR_INLINE __inline__
-# if (__GNUC__ >2 || __GNUC_MINOR__ >=7)
-#   define MTR_UNUSED __attribute__ ((unused))
-# else
-#   define MTR_UNUSED
-# endif
-#else
-#define MTR_INLINE
-#define MTR_UNUSED
-#endif
-
-/* MTR_MAXHIGH is defined in such a way that on 32-bit and 64-bit
-** machines one can cast a value to (int) without generating a negative
-** number.
-*/
-#if SIZEOF_VOID_P == 8
-#define MTR_MAXHIGH	(((MtrHalfWord) ~0) >> 1)
-#else
-#define MTR_MAXHIGH	((MtrHalfWord) ~0)
-#endif
+#define	EPD_MAX_BIN	1023
+#define	EPD_MAX_DEC	308
+#define	EPD_EXP_INF	0x7ff
 
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
 
+typedef struct IeeeDoubleStruct IeeeDouble;
+typedef struct IeeeNanStruct IeeeNan;
+typedef union EpTypeUnion EpType;
+
+/*---------------------------------------------------------------------------*/
+/* Structure declarations                                                    */
+/*---------------------------------------------------------------------------*/
+
 /**
- * @brief unsigned integer half the size of a pointer.
- */
-#if SIZEOF_VOID_P == 8
-typedef uint32_t   MtrHalfWord;
+  @brief IEEE double struct.
+*/
+#ifdef	EPD_BIG_ENDIAN
+struct IeeeDoubleStruct {	/* BIG_ENDIAN */
+  unsigned int sign: 1;
+  unsigned int exponent: 11;
+  unsigned int mantissa0: 20;
+  unsigned int mantissa1: 32;
+};
 #else
-typedef uint16_t MtrHalfWord;
+struct IeeeDoubleStruct {	/* LITTLE_ENDIAN */
+  unsigned int mantissa1: 32;
+  unsigned int mantissa0: 20;
+  unsigned int exponent: 11;
+  unsigned int sign: 1;
+};
 #endif
 
-/*---------------------------------------------------------------------------*/
-/* Stucture declarations                                                     */
-/*---------------------------------------------------------------------------*/
+/**
+  @brief IEEE double NaN struct.
+*/
+#ifdef	EPD_BIG_ENDIAN
+struct IeeeNanStruct {	/* BIG_ENDIAN */
+  unsigned int sign: 1;
+  unsigned int exponent: 11;
+  unsigned int quiet_bit: 1;
+  unsigned int mantissa0: 19;
+  unsigned int mantissa1: 32;
+};
+#else
+struct IeeeNanStruct {	/* LITTLE_ENDIAN */
+  unsigned int mantissa1: 32;
+  unsigned int mantissa0: 19;
+  unsigned int quiet_bit: 1;
+  unsigned int exponent: 11;
+  unsigned int sign: 1;
+};
+#endif
 
 /**
- * @brief multi-way tree node.
- */
-struct MtrNode_ {
-    MtrHalfWord flags;
-    MtrHalfWord low;
-    MtrHalfWord size;
-    MtrHalfWord index;
-    struct MtrNode_ *parent;
-    struct MtrNode_ *child;
-    struct MtrNode_ *elder;
-    struct MtrNode_ *younger;
+  @brief Different views of a double.
+*/
+union EpTypeUnion {
+  double			value;
+  struct IeeeDoubleStruct	bits;
+  struct IeeeNanStruct		nan;
 };
 
-/*---------------------------------------------------------------------------*/
-/* Variable declarations                                                     */
-/*---------------------------------------------------------------------------*/
-
-
-/*---------------------------------------------------------------------------*/
-/* Macro declarations                                                        */
-/*---------------------------------------------------------------------------*/
-
-/* Flag manipulation macros */
-#define MTR_SET(node, flag)	(node->flags |= (flag))
-#define MTR_RESET(node, flag)	(node->flags &= ~ (flag))
-#define MTR_TEST(node, flag)	(node->flags & (flag))
-
-
-/** \cond */
+/**
+  @brief Extended precision double to keep very large value.
+*/
+struct EpDoubleStruct {
+  union EpTypeUnion		type;
+  int				exponent;
+};
 
 /*---------------------------------------------------------------------------*/
 /* Function prototypes                                                       */
 /*---------------------------------------------------------------------------*/
 
-/** \endcond */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+#ifdef __cplusplus
+}
+#endif
 
-#endif /* MTRINT_H_ */
+#endif /* EPD_H_ */

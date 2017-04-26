@@ -26,7 +26,7 @@
 
 ******************************************************************************/
 
-#include "CUDD/dddmpInt.h"
+#include "dddmpInt.h"
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
@@ -155,7 +155,7 @@ DddmpWriteNodeIndexBdd (
   )
 {
   if (!Cudd_IsConstant (f)) {
-    f->next = (struct DdNode *)((ptruint)((id)<<1));
+    f->next = (struct DdNode *)((ptruint)id<<1);
   }
 
   return;
