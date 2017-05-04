@@ -135,7 +135,7 @@ class PTACFInfoBuilder {
 
 public:
     typedef std::map<const llvm::Function*, llvm::DominatorTree*> FunToDTMap;  ///< map a function to its dominator tree
-    typedef std::map<const llvm::Function*, llvm::PostDominatorTree*> FunToPostDTMap;  ///< map a function to its post dominator tree
+    typedef std::map<const llvm::Function*, llvm::PostDominatorTreeWrapperPass*> FunToPostDTMap;  ///< map a function to its post dominator tree
     typedef std::map<const llvm::Function*, PTALoopInfo*> FunToLoopInfoMap;  ///< map a function to its loop info
 
     /// Constructor
@@ -174,14 +174,14 @@ public:
         llvm::Function* fun = const_cast<llvm::Function*>(f);
         FunToPostDTMap::iterator it = funToPDTMap.find(fun);
         if(it==funToPDTMap.end()) {
+            // TODO: rework this properly
             llvm::PostDominatorTreeWrapperPass* postDT = new llvm::PostDominatorTreeWrapperPass();
             postDT->runOnFunction(*fun);
-	    llvm::PostDominatorTree * PDT = &(postDT->getPostDomTree());
-            funToPDTMap[fun] = PDT;
-            return PDT;
+            funToPDTMap[fun] = postDT;
+            return &postDT->getPostDomTree();
         }
         else
-            return it->second;
+            return &it->second->getPostDomTree();
     }
 
     /// Get dominator tree of a function
