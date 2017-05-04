@@ -62,7 +62,9 @@ void FlowSensitive::analyze(llvm::Module& module) {
     /// Start solving constraints
     DBOUT(DGENERAL, llvm::outs() << analysisUtil::pasMsg("Start Solving Constraints\n"));
 
-    callGraphSCC = new CallGraphSCC(getPTACallGraph());
+    // This is already done by initialize() calling callGraphSCCDetection
+    // creating a new one causes problems, and no reason to AFAICT.
+    // callGraphSCC = new CallGraphSCC(getPTACallGraph());
 
     do {
         numOfIteration++;
