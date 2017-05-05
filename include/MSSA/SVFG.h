@@ -105,7 +105,7 @@ protected:
     StorePEToSVFGNodeMap storePEToSVFGNodeMap;	///< map store inst to store SVFGNode
     SVFGStat * stat;
     SVFGK kind;
-    std::unique_ptr<MemSSA> mssa;
+    MemSSA* mssa;
     PointerAnalysis* pta;
 
     /// Clean up memory
@@ -115,7 +115,7 @@ protected:
     SVFG(SVFGK k = ORIGSVFGK);
 
     /// Start building SVFG
-    virtual void buildSVFG(std::unique_ptr<MemSSA> m);
+    virtual void buildSVFG(MemSSA* m);
 
 public:
     /// Destructor
@@ -133,13 +133,9 @@ public:
         return PAG::getPAG();
     }
 
-    inline MemSSA* getMSSA() {
-      return mssa.get();
-    };
-
     /// Clear MSSA
     inline void clearMSSA() {
-        mssa.reset();
+        mssa = NULL;
     }
 
     /// Get SVFG kind

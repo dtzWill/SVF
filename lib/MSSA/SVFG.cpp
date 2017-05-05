@@ -43,7 +43,7 @@ static cl::opt<bool> DumpVFG("dump-svfg", cl::init(false),
 /*!
  * Constructor
  */
-SVFG::SVFG(SVFGK k): totalSVFGNode(0), kind(k),pta(NULL) {
+SVFG::SVFG(SVFGK k): totalSVFGNode(0), kind(k),mssa(NULL),pta(NULL) {
     stat = new SVFGStat(this);
 }
 
@@ -53,7 +53,7 @@ SVFG::SVFG(SVFGK k): totalSVFGNode(0), kind(k),pta(NULL) {
 void SVFG::destroy() {
     delete stat;
     stat = NULL;
-    mssa.reset();
+    mssa = NULL;
     pta = NULL;
 }
 
@@ -66,9 +66,9 @@ void SVFG::destroy() {
  *    a) between two statements (PAGEdges)
  *    b) between two memory SSA operators (MSSAPHI MSSAMU and MSSACHI)
  */
-void SVFG::buildSVFG(std::unique_ptr<MemSSA> m) {
-    mssa = std::move(m);
-    pta = mssa->getPTA();
+void SVFG::buildSVFG(MemSSA* m) {
+    mssa = m;
+    pta = m->getPTA();
     stat->startClk();
     DBOUT(DGENERAL, outs() << pasMsg("\tCreate SVFG Top Level Node\n"));
 

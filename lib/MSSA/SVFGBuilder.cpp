@@ -45,10 +45,10 @@ SVFGOPT* SVFGBuilder::globalSvfg = NULL;
 /*!
  * Create SVFG
  */
-void SVFGBuilder::createSVFG(std::unique_ptr<MemSSA> mssa, SVFG* graph) {
+void SVFGBuilder::createSVFG(MemSSA* mssa, SVFG* graph) {
     svfg = graph;
-    svfg->buildSVFG(std::move(mssa));
-    if(svfg->getMSSA()->getPTA()->printStat())
+    svfg->buildSVFG(mssa);
+    if(mssa->getPTA()->printStat())
         svfg->performStat();
     svfg->dump("FS_SVFG");
 }
@@ -85,7 +85,7 @@ void SVFGBuilder::releaseMemory(SVFG* vfg) {
  */
 bool SVFGBuilder::build(SVFG* graph,BVDataPTAImpl* pta) {
 
-    auto mssa = llvm::make_unique<MemSSA>(pta);
+    MemSSA mssa(pta);
 
     DBOUT(DGENERAL, outs() << pasMsg("Build Memory SSA \n"));
 
@@ -102,22 +102,20 @@ bool SVFGBuilder::build(SVFG* graph,BVDataPTAImpl* pta) {
         dt.recalculate(fun);
         df.runOnDT(dt);
 
-        mssa->buildMemSSA(fun, &df, &dt);
+        mssa.buildMemSSA(fun, &df, &dt);
     }
 
-    mssa->performStat();
-    mssa->dumpMSSA();
+    mssa.performStat();
+    mssa.dumpMSSA();
 
     DBOUT(DGENERAL, outs() << pasMsg("Build Sparse Value-Flow Graph \n"));
 
-    createSVFG(std::move(mssa), graph);
+    createSVFG(&mssa, graph);
 
     if(SVFGWithIndirectCall || SVFGWithIndCall)
-        updateCallGraph(graph->getMSSA()->getPTA());
+        updateCallGraph(mssa.getPTA());
 
-    // Graph will release mssa either on request or
-    // when it itself is deleted.
-    // releaseMemory(graph);
+    releaseMemory(graph);
 
     return false;
 }

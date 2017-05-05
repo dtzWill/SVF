@@ -81,8 +81,8 @@ public:
         return g->getKind() == OPTSVFGK;
     }
 protected:
-    virtual inline void buildSVFG(std::unique_ptr<MemSSA> m) {
-        SVFG::buildSVFG(std::move(m));
+    virtual inline void buildSVFG(MemSSA* m) {
+        SVFG::buildSVFG(m);
 
         dump("SVFG_before_opt");
 

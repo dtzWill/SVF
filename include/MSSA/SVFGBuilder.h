@@ -95,7 +95,7 @@ protected:
     /// We start from here
     virtual bool build(SVFG* graph,BVDataPTAImpl* pta);
     /// Can be rewritten by subclasses
-    virtual void createSVFG(std::unique_ptr<MemSSA> mssa, SVFG* graph);
+    virtual void createSVFG(MemSSA* mssa, SVFG* graph);
     /// Release global SVFG
     virtual void releaseMemory(SVFG* graph);
     /// Update call graph using pre-analysis points-to results
