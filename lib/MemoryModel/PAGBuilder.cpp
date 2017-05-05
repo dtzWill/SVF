@@ -715,15 +715,30 @@ void PAGBuilder::addComplexConsForExt(Value *D, Value *S, u32_t sz) {
  */
 void PAGBuilder::handleExtCall(CallSite cs, const Function *callee) {
     const Instruction* inst = cs.getInstruction();
-    if (isHeapAllocExtCall(inst)) {
-        NodeID val = getValueNode(inst);
+    if (isHeapAllocOrStaticExtCall(cs)) {
         NodeID obj = getObjectNode(inst);
-        pag->addAddrEdge(obj, val);
-    }
-    else if(isStaticExtCall(inst)) {
-        NodeID val = getValueNode(inst);
-        NodeID obj = getObjectNode(inst);
-        pag->addAddrEdge(obj, val);
+        // case 1: ret = new obj
+        if (isHeapAllocExtCallViaRet(cs) || isStaticExtCall(cs)) {
+            NodeID val = getValueNode(inst);
+            NodeID obj = getObjectNode(inst);
+            pag->addAddrEdge(obj, val);
+        }
+        // case 2: *arg = new obj
+        else {
+            assert(isHeapAllocExtCallViaArg(cs) && "Must be heap alloc call via arg.");
+            int arg_pos = getHeapAllocHoldingArgPosition(callee);
+            const Value *arg = cs.getArgument(arg_pos);
+            if (arg->getType()->isPointerTy()) {
+                NodeID vnArg = getValueNode(arg);
+                NodeID dummy = pag->addDummyValNode();
+                if (vnArg && dummy && obj) {
+                    pag->addAddrEdge(obj, dummy);
+                    pag->addStoreEdge(dummy, vnArg);
+                }
+            } else {
+                wrnMsg("Arg receiving new object must be pointer type");
+            }
+        }
     }
     else {
         if(isExtCall(callee)) {
@@ -833,7 +848,7 @@ void PAGBuilder::handleExtCall(CallSite cs, const Function *callee) {
             case ExtAPI::EFT_A2R_NEW:
             case ExtAPI::EFT_A4R_NEW:
             case ExtAPI::EFT_A11R_NEW: {
-                //TODO:: handle case here
+                assert(!"Alloc via arg cases are not handled here.");
                 break;
             }
             case ExtAPI::EFT_ALLOC:
